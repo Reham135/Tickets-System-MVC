@@ -1,0 +1,77 @@
+﻿@namespace D2Assignment.Models.View
+@using D2Assignment.Models.Domain;
+@model List<Ticket>
+@{
+    var tickets=Model;
+
+}
+
+<table class="table table-striped border-success">
+    <thead>
+    <tr>
+            
+            <th>Department</th>
+              <th>Severity</th>
+              <th>Description</th>
+              <th>IsClosed</th>
+            <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+@foreach (var ticket in tickets)
+    {
+        <tr>
+                <td>@ticket.Department</td>
+                <td>@ticket.Severity</td>
+                <td>@ticket.Description</td>
+                <td>@ticket.IsClosed</td>
+                <td>
+                    <div class="d-flex">
+                    <a class="btn btn-warning " asp-action="Edit" asp-route-id="@ticket.Id">Edit</a>
+                <form asp-action="Delete" asp-route-id="@ticket.Id" method="post">     @*asp-route-YourParamName*@
+                    <button class=" btn btn-danger">Delete</button>
+                </form>
+                    </div>
+            </td>
+
+       </tr> 
+    }
+    </tbody>
+</table>
+
+
+    
+
+
+
+
+
+
+
+
+@*for toaster feature*@
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var operation = '@TempData[@Constants.Operation]' ;
+            toastr.options = {positionClass: 'toaster-center'}; //css style
+            switch (operation) {
+                case '@Constants.Add':
+                    toastr.success('Ticket Added Successfully');
+                    break;
+                case '@Constants.Edit':
+                    toastr.warning('Ticket Edited Successfully');
+                    break;
+                case '@Constants.Delete':
+                    toastr.error('Ticket Deleted Successfully');
+                    break;
+            }
+        });
+    </script>
+}
+
+
