@@ -11,11 +11,17 @@ namespace D2Assignment.Controllers
 
     {
         private static List<Ticket> _tickets = new();
-        private void getviewdata()
+        public void getviewdata()
         {
-          ViewData[Constants.Departments] = Department.GetDepartments()
-         .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
-         .ToList();
+            ViewData[Constants.Departments] = Department.GetDepartments()
+           .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+           .ToList();
+        }
+        public void getViewBag()
+        {
+            ViewBag.Assignees = Developer.GetDevelopers()
+            .Select(a => new SelectListItem(a.Fname + " " + a.Lname, a.Id.ToString()))
+            .ToList();
         }
 
         #region GetAllTickets
@@ -31,15 +37,20 @@ namespace D2Assignment.Controllers
         [HttpGet]
         public IActionResult Add()
         {
-            getviewdata();    
+            getviewdata();
+            getViewBag();
             return View();
         }
         [HttpPost]
         public IActionResult Add(TicketAddVM ticketVM)
-        { if(!ModelState.IsValid)
-                getviewdata();
-                return View();
+        {
+            if (!ModelState.IsValid) { 
+            getviewdata();
+            getViewBag();
+            return View();
+            }
             var selectedDept = Department.GetDepartments().First(w => w.Id == ticketVM.DepartmentId);
+            var selectedAssignees = Developer.GetDevelopers().Where(a => ticketVM.AssigneesId.Contains(a.Id)).ToList();
             Ticket ticket = new Ticket
             {
                 Id = Guid.NewGuid(),
@@ -47,10 +58,11 @@ namespace D2Assignment.Controllers
                 IsClosed = ticketVM.IsClosed,
                 Description = ticketVM.Description,
                 Severity = ticketVM.Severity,
-                Department = selectedDept
+                Department = selectedDept,
+                Assignees = selectedAssignees
             };
-           _tickets.Add(ticket);
-             TempData[Constants.Operation] = Constants.Add;
+            _tickets.Add(ticket);
+            TempData[Constants.Operation] = Constants.Add;
             return RedirectToAction(nameof(Index));
         }
         #endregion
@@ -59,10 +71,11 @@ namespace D2Assignment.Controllers
         #region Edit
 
         [HttpGet]
-        public IActionResult Edit (Guid id)
+        public IActionResult Edit(Guid id)
         {
             getviewdata();
-            Ticket ticket=_tickets.First(w => w.Id == id);
+            getViewBag();
+            Ticket ticket = _tickets.First(w => w.Id == id);
             TicketEditVM ticketEditVM = new()
             {
                 Id = ticket.Id,
@@ -70,7 +83,8 @@ namespace D2Assignment.Controllers
                 IsClosed = ticket.IsClosed,
                 Description = ticket.Description,
                 Severity = ticket.Severity,
-                DepartmentId = ticket.Department.Id
+                DepartmentId = ticket.Department.Id,
+                AssigneesId = ticket.Assignees.Select(a => a.Id).ToList(),
 
             };
             return View(ticketEditVM);
@@ -81,11 +95,13 @@ namespace D2Assignment.Controllers
 
         {
             var selectedDept = Department.GetDepartments().First(w => w.Id == ticketVM.DepartmentId);
+            var selectedAssignees = Developer.GetDevelopers().Where(a => ticketVM.AssigneesId.Contains(a.Id)).ToList();
             var ticket = _tickets.First(w => w.Id == ticketVM.Id);
             ticket.Severity = ticketVM.Severity;
             ticket.IsClosed = ticketVM.IsClosed;
             ticket.Description = ticketVM.Description;
             ticket.Department = selectedDept;
+            ticket.Assignees = selectedAssignees;
             TempData[Constants.Operation] = Constants.Edit;
             return (RedirectToAction(nameof(Index)));
         }
@@ -97,9 +113,9 @@ namespace D2Assignment.Controllers
         [HttpPost]
         public IActionResult Delete(Guid id)
         {
-            var  ticketToRemove=_tickets.First (w => w.Id == id);
+            var ticketToRemove = _tickets.First(w => w.Id == id);
             _tickets.Remove(ticketToRemove);
-            TempData[Constants.Operation]= Constants.Delete;
+            TempData[Constants.Operation] = Constants.Delete;
             return RedirectToAction(nameof(Index));
         }
         #endregion

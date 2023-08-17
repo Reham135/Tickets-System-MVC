@@ -1,4 +1,5 @@
 ﻿using D2Assignment.Models.Domain;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace D2Assignment.Models.View
@@ -12,7 +13,9 @@ namespace D2Assignment.Models.View
            [StringLength(50, MinimumLength = 5)]
            public string Description { get; set; }
             public int DepartmentId { get; set; }
-        
+       
+            [DisplayName("Assignees")]
+           public List<int> AssigneesId { get; set; } = new();
     }
 
 
